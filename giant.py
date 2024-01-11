@@ -1,5 +1,7 @@
-
+from multiprocessing import Process
 import random
+import math
+import numpy as np
 
 employees = [
 	{
@@ -559,17 +561,24 @@ def create_pairs(employees):
 		pairs.append((shuffled_employees[i-1]['name'], shuffled_employees[i]['name']))
 	if employees_size > 2:
 		pairs.append((shuffled_employees[employees_size-1]['name'], shuffled_employees[0]['name']))
-	return pairs
+	print(pairs)
 
 
 def run():
 	# remove of duplicate elements in the list
 	employees2 = remove_duplicates(employees)
+	# number of the process need
+	multi_number = math.floor(math.sqrt(len(employees2)))
+	pairs = []
+	list_multi = np.array_split(employees2, multi_number)
 
-	# pairing dwarf and giant
-	pairs = create_pairs(employees2)
+	for i in range(0, multi_number):
+		pairs.append(Process(target=create_pairs, args=(list_multi[i],)))
+		pairs[i].start()
 
-	print(pairs)
+	for i in range(0, multi_number - 1):
+		pairs[i].join()
 
 
-run()
+if __name__ == '__main__':
+	run()
