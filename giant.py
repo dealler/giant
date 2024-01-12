@@ -1,4 +1,4 @@
-from multiprocessing import Process
+from multiprocessing import Process, Manager
 import random
 import math
 import numpy as np
@@ -552,7 +552,7 @@ def remove_duplicates(employees):
 
 # shuffling the list and pairing close elements
 # and pairing the end of the list
-def create_pairs(employees):
+def create_pairs(employees, res):
 	pairs = []
 	shuffled_employees = employees.copy()
 	random.shuffle(shuffled_employees)
@@ -561,7 +561,7 @@ def create_pairs(employees):
 		pairs.append((shuffled_employees[i-1]['name'], shuffled_employees[i]['name']))
 	if employees_size > 2:
 		pairs.append((shuffled_employees[employees_size-1]['name'], shuffled_employees[0]['name']))
-	print(pairs)
+	res.extend(pairs)
 
 
 def run():
@@ -570,15 +570,21 @@ def run():
 	# number of the process need
 	multi_number = math.floor(math.sqrt(len(employees2)))
 	pairs = []
+	manager = Manager()
+	result = manager.list()
 	list_multi = np.array_split(employees2, multi_number)
 
 	for i in range(0, multi_number):
-		pairs.append(Process(target=create_pairs, args=(list_multi[i],)))
+		p = Process(target=create_pairs, args=(list(list_multi[i]), result))
+		pairs.append(p)
 		pairs[i].start()
 
 	for i in range(0, multi_number - 1):
 		pairs[i].join()
 
+	return result
+
 
 if __name__ == '__main__':
-	run()
+	res = run()
+	print(res)
